@@ -80,6 +80,16 @@ rules:
   - create
   - update
   - patch
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - list
+  - watch
+  - create
+  - update
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -109,7 +119,7 @@ spec:
     - --v=5
     - --provisioner=csi-hostpath
     - --csi-address=/csi/csi.sock
-    image: quay.io/k8scsi/csi-provisioner:v0.2.1
+    image: quay.io/k8scsi/csi-provisioner:v0.4.0
     imagePullPolicy: Always
     volumeMounts:
     - mountPath: /csi
@@ -118,17 +128,20 @@ spec:
     args:
     - --v=5
     - --csi-address=/csi/csi.sock
+    - --kubelet-registration-path=/var/lib/kubelet/plugins/csi-hostpath/csi.sock
     env:
     - name: KUBE_NODE_NAME
       valueFrom:
         fieldRef:
           apiVersion: v1
           fieldPath: spec.nodeName
-    image: quay.io/k8scsi/driver-registrar:v0.2.0
+    image: quay.io/k8scsi/driver-registrar:v0.4.0
     imagePullPolicy: Always
     volumeMounts:
     - mountPath: /csi
       name: socket-dir
+    - mountPath: /registration
+      name: registration-dir
   - name: external-attacher
     args:
     - --v=5
@@ -136,7 +149,7 @@ spec:
     env:
     - name: ADDRESS
       value: /csi/csi.sock
-    image: quay.io/k8scsi/csi-attacher:v0.2.0
+    image: quay.io/k8scsi/csi-attacher:v0.4.0
     imagePullPolicy: Always
     volumeMounts:
     - mountPath: /csi
@@ -154,7 +167,7 @@ spec:
         fieldRef:
           apiVersion: v1
           fieldPath: spec.nodeName
-    image: quay.io/k8scsi/hostpathplugin:v0.2.0
+    image: quay.io/k8scsi/hostpathplugin:v0.4.0
     imagePullPolicy: Always
     securityContext:
       privileged: true
@@ -173,3 +186,7 @@ spec:
       path: /var/lib/kubelet/pods
       type: DirectoryOrCreate
     name: mountpoint-dir
+  - hostPath:
+      path: /var/lib/kubelet/plugins
+      type: Directory
+    name: registration-dir
