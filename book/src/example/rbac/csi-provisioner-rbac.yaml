@@ -26,7 +26,7 @@ rules:
     verbs: ["list", "watch", "create", "update", "patch"]
   - apiGroups: [""]
     resources: ["endpoints"]
-    verbs: ["list", "watch", "create", "update", "get"]
+    verbs: ["create", "update", "get"]
   - apiGroups: ["snapshot.storage.k8s.io"]
     resources: ["volumesnapshots"]
     verbs: ["get", "list"]
